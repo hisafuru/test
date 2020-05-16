@@ -37,6 +37,7 @@ class LightSensor():
                         inProduction = False
 
                     #赤ランプの監視, エラーが出たら記録
+
                     if val_red >= self.config['LIGHT_THRESHOLD'] and error == False:
                         error = True
                         self.gs.update_errortime()
@@ -45,12 +46,12 @@ class LightSensor():
                         val_red_time = 0
 
                     elif error == True and val_red < self.config['LIGHT_THRESHOLD']:
-                        if time.time() - val_red_time > interval:
+                        if val_red_time == 0:
+                            val_red_time = time.time()
+                        elif time.time() - val_red_time > interval:
                             val_red_time = 0
                             self.gs.update_errortime()
                             error = False
-                        elif val_red_time == 0:
-                            val_red_time = time.time()
 
                     if previousHour < datetime.datetime.now().hour or (previousHour == 23 and datetime.datetime.now().hour == 0):
                         print('break')
