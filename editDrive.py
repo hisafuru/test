@@ -10,7 +10,7 @@ class GoogleDriveUpload():
         print('Initializing google api...')
 
         #再帰関数の上限を変更
-        sys.setrecursionlimit(50)
+        sys.setrecursionlimit(300)
 
         #oauth認証
         try:

@@ -15,7 +15,7 @@ class GoogleSheets():
     def __init__(self):
         print('Initializing sheets api...')
 
-        sys.setrecursionlimit(50)
+        sys.setrecursionlimit(300)
 
         #paperless_setting.yamlの読み込み
         try:
