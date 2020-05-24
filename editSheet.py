@@ -2,6 +2,7 @@
 import gspread,json,yaml,datetime,time,sys,importlib,csv
 sys.path.append("../GoogleSheets/GoogleDrive")
 import editDrive
+import requests
 
 #ServiceAccountCredentials：Googleの各サービスへアクセスできるservice変数を生成します。
 from oauth2client.service_account import ServiceAccountCredentials
@@ -13,6 +14,9 @@ class GoogleSheets():
 
     def __init__(self):
         print('Initializing sheets api...')
+
+        sys.setrecursionlimit(50)
+
         #paperless_setting.yamlの読み込み
         try:
             with open('paperless_setting.yaml') as file:
@@ -21,114 +25,157 @@ class GoogleSheets():
         except Exception as e:
             print(e)
             print('Please check if paperless_setting.yml exists in the setting folder.')
-            sys.exit()
+            sys.exit(1)
 
         #2つのAPIを記述しないとリフレッシュトークンを3600秒毎に発行し続けなければならない
         scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
-        #認証情報設定
-        #ダウンロードしたjsonファイル名をクレデンシャル変数に設定（秘密鍵、Pythonファイルから読み込みしやすい位置に置く）
-        credentials = ServiceAccountCredentials.from_json_keyfile_name('client-secret-sheet.json', scope)
 
-        #OAuth2の資格情報を使用してGoogle APIにログインします。
-        self.gc = gspread.authorize(credentials)
+        try:
 
-        #共有設定したスプレッドシートキーを変数[SPREADSHEET_KEY]に格納する。
-        self.SPREADSHEET_KEY = self.config["SPREADSHEET_KEY"]
-        self.FILE_PATH = self.config['MACHINE_NAME'] + ".csv"
-        self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
+            #認証情報設定
+            #ダウンロードしたjsonファイル名をクレデンシャル変数に設定（秘密鍵、Pythonファイルから読み込みしやすい位置に置く）
+            credentials = ServiceAccountCredentials.from_json_keyfile_name('client-secret-sheet.json', scope)
 
-        with open(self.FILE_PATH, "w") as f:
-            writer = csv.writer(f, lineterminator="\n")
-            self.row = len(self.worksheet.get_all_values())
-            writer.writerows(self.worksheet.get_all_values())
-            f.close()
+            #OAuth2の資格情報を使用してGoogle APIにログインします。
+            self.gc = gspread.authorize(credentials)
 
-        self.gdrive = editDrive.GoogleDriveUpload()
-        self.error = False
-        self.pastError = False
-        self.diffErrorAndNowRow = 0
+            #共有設定したスプレッドシートキーを変数[SPREADSHEET_KEY]に格納する。
+            self.SPREADSHEET_KEY = self.config["SPREADSHEET_KEY"]
+            self.FILE_PATH = self.config['MACHINE_NAME'] + ".csv"
+            self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
 
-        if self.row != 1:
-            self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+            with open(self.FILE_PATH, "w") as f:
+                writer = csv.writer(f, lineterminator="\n")
+                self.row = len(self.worksheet.get_all_values())
+                writer.writerows(self.worksheet.get_all_values())
+                f.close()
 
+            self.gdrive = editDrive.GoogleDriveUpload()
+            self.error = False
+            self.pastError = False
+            self.diffErrorAndNowRow = 0
+
+            if self.row != 1:
+                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            time.sleep(2)
+            __init__()
+        except Exception as e:
+            print('An unexpected error occurred')
+            print(e)
+            sys.exit(1)
 
         print('Finish Initializing.')
 
     #1時間経った時に呼び出し、新しいファイルを作る
     def create_new_record(self):
-        self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
+        try:
+            self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
 
-        with open(self.FILE_PATH, "w") as f:
-            writer = csv.writer(f, lineterminator="\n")
-            self.row = len(self.worksheet.get_all_values())
-            writer.writerows(self.worksheet.get_all_values())
-            f.close()
+            with open(self.FILE_PATH, "w") as f:
+                writer = csv.writer(f, lineterminator="\n")
+                self.row = len(self.worksheet.get_all_values())
+                writer.writerows(self.worksheet.get_all_values())
+                f.close()
 
-        #もしエラー中なら
-        if self.error == True and self.pastError == False:
-            self.diffErrorAndNowRow+=1
-            self.pastError = True
-            self.pastRecord = self.record
-        elif self.pastError == True and self.error == True:
-            self.diffErrorAndNowRow+=1
-            self.pastError = True
+            #もしエラー中なら
+            if self.error == True and self.pastError == False:
+                self.diffErrorAndNowRow+=1
+                self.pastError = True
+                self.pastRecord = self.record
+            elif self.pastError == True and self.error == True:
+                self.diffErrorAndNowRow+=1
+                self.pastError = True
 
-        #既にその時間のレコードがあればそのまま
-        if not (datetime.datetime.now().strftime('%Y%m%d') == self.worksheet.cell(self.row, 2).value and str(datetime.datetime.now().hour) == self.worksheet.cell(self.row, 3).value):
+            #既にその時間のレコードがあればそのまま
+            if not (datetime.datetime.now().strftime('%Y%m%d') == self.worksheet.cell(self.row, 2).value and str(datetime.datetime.now().hour) == self.worksheet.cell(self.row, 3).value):
 
-            csv_data = self.read_csv(self.FILE_PATH)
-            csv_data[self.row-1] = self.record
-            self.record = [self.config['ITEM_NAME'],int(datetime.datetime.now().strftime('%Y%m%d')),datetime.datetime.now().hour,None,None]
-            csv_data.append(self.record)
-            self.write_csv(self.FILE_PATH, csv_data)
-            #ファイル容量の関係でアップロードをするかどうか考え中
-            self.gdrive.upload_file()
+                csv_data = self.read_csv(self.FILE_PATH)
+                csv_data[self.row-1] = self.record
+                self.record = [self.config['ITEM_NAME'],int(datetime.datetime.now().strftime('%Y%m%d')),datetime.datetime.now().hour,None,None]
+                csv_data.append(self.record)
+                self.write_csv(self.FILE_PATH, csv_data)
+                #ファイル容量の関係でアップロードをするかどうか考え中
+                self.gdrive.upload_file()
 
-        else:
-            self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+            else:
+                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            time.sleep(2)
+            create_new_record()
+
+        except Exception as e:
+            print('An unexpected error occurred')
+            print(e)
+            sys.exit(1)
 
     def update_createtime(self):
-        time = str(datetime.datetime.now().strftime('%M:%S'))
-        if self.record[3] == None or self.record[3] == "":
-            self.record[3] = time + ','
-        else:
-            self.record[3] += time + ','
+        try:
+            time = str(datetime.datetime.now().strftime('%M:%S'))
+            if self.record[3] == None or self.record[3] == "":
+                self.record[3] = time + ','
+            else:
+                self.record[3] += time + ','
 
-        self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
-        self.row = len(self.worksheet.get_all_values())
-        self.worksheet.update_cell(self.row,4,self.record[3])
+            self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
+            self.row = len(self.worksheet.get_all_values())
+            self.worksheet.update_cell(self.row,4,self.record[3])
+
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            time.sleep(2)
+            create_new_record()
+
+        except Exception as e:
+            print('An unexpected error occurred')
+            print(e)
+            sys.exit(1)
 
     def update_errortime(self):
-        time = str(datetime.datetime.now().strftime('%M:%S'))
+        try:
+            time = str(datetime.datetime.now().strftime('%M:%S'))
 
-        self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
-        self.row = len(self.worksheet.get_all_values())
+            self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
+            self.row = len(self.worksheet.get_all_values())
 
-        if self.pastError == True and self.error == True:
-            self.pastRecord[4] += time + ','
+            if self.pastError == True and self.error == True:
+                self.pastRecord[4] += time + ','
 
-            self.error = False
-            self.pastError = False
+                self.error = False
+                self.pastError = False
 
-            self.worksheet.update_cell(self.row-self.diffErrorAndNowRow,5,self.pastRecord[4])
-            csv_data = self.read_csv(self.FILE_PATH)
-            csv_data[self.row-self.diffErrorAndNowRow-1] = self.pastRecord
+                self.worksheet.update_cell(self.row-self.diffErrorAndNowRow,5,self.pastRecord[4])
+                csv_data = self.read_csv(self.FILE_PATH)
+                csv_data[self.row-self.diffErrorAndNowRow-1] = self.pastRecord
 
-            self.write_csv(self.FILE_PATH, csv_data)
-            self.diffErrorAndNowRow = 0
+                self.write_csv(self.FILE_PATH, csv_data)
+                self.diffErrorAndNowRow = 0
 
-        else:
-            if self.record[3] == None or self.record[3] == "" and self.error == False:
-                self.record[4] = time + ','
-                self.error = True
             else:
-                if self.error == False:
-                    self.record[4] += time + ','
+                if self.record[3] == None or self.record[3] == "" and self.error == False:
+                    self.record[4] = time + ','
+                    self.error = True
                 else:
-                    self.record[4] += time + ', '
-            self.error = not self.error
-            self.worksheet.update_cell(self.row,5,self.record[4])
+                    if self.error == False:
+                        self.record[4] += time + ','
+                    else:
+                        self.record[4] += time + ', '
+                self.error = not self.error
+                self.worksheet.update_cell(self.row,5,self.record[4])
+
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            time.sleep(2)
+            create_new_record()
+
+        except Exception as e:
+            print('An unexpected error occurred')
+            print(e)
+            sys.exit(1)
 
     def update_cell(self,sheetName,rowNum,columnNum,value):
         #共有設定したスプレッドシートのシート1を開く

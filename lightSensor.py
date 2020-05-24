@@ -16,7 +16,7 @@ class LightSensor():
     def start_measure(self):
         try:
             val_red_time = 0
-            interval = 5
+            interval = 8
             inProduction = False
             error = False
 
@@ -50,8 +50,9 @@ class LightSensor():
                             val_red_time = time.time()
                         elif time.time() - val_red_time > interval:
                             val_red_time = 0
-                            self.gs.update_errortime()
                             error = False
+                            self.gs.update_errortime()
+
 
                     if previousHour < datetime.datetime.now().hour or (previousHour == 23 and datetime.datetime.now().hour == 0):
                         print('break')
