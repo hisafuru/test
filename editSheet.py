@@ -55,9 +55,10 @@ class GoogleSheets():
             self.error = False
             self.pastError = False
             self.diffErrorAndNowRow = 0
+            self.quantityPerHour = 0
 
             if self.row != 1:
-                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value,self.worksheet.cell(self.row,  6).value]
         except requests.exceptions.ReadTimeout as e:
             print(e)
             time.sleep(2)
@@ -91,17 +92,18 @@ class GoogleSheets():
 
             #既にその時間のレコードがあればそのまま
             if not (datetime.datetime.now().strftime('%Y%m%d') == self.worksheet.cell(self.row, 2).value and str(datetime.datetime.now().hour) == self.worksheet.cell(self.row, 3).value):
+                self.quantityPerHour = 0
 
                 csv_data = self.read_csv(self.FILE_PATH)
                 csv_data[self.row-1] = self.record
-                self.record = [self.config['ITEM_NAME'],int(datetime.datetime.now().strftime('%Y%m%d')),datetime.datetime.now().hour,None,None]
+                self.record = [self.config['ITEM_NAME'],int(datetime.datetime.now().strftime('%Y%m%d')),datetime.datetime.now().hour,None,None,None]
                 csv_data.append(self.record)
                 self.write_csv(self.FILE_PATH, csv_data)
                 #ファイル容量の関係でアップロードをするかどうか考え中
                 self.gdrive.upload_file()
 
             else:
-                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value]
+                self.record = [self.worksheet.cell(self.row, 1).value,self.worksheet.cell(self.row, 2).value,self.worksheet.cell(self.row, 3).value,self.worksheet.cell(self.row, 4).value,self.worksheet.cell(self.row, 5).value,self.worksheet.cell(self.row,  6).value]
 
         except requests.exceptions.ReadTimeout as e:
             print(e)
@@ -124,11 +126,12 @@ class GoogleSheets():
             self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
             self.row = len(self.worksheet.get_all_values())
             self.worksheet.update_cell(self.row,4,self.record[3])
+            self.quantityPerHour += 1
 
         except requests.exceptions.ReadTimeout as e:
             print(e)
             time.sleep(2)
-            create_new_record()
+            update_createtime()
 
         except Exception as e:
             print('An unexpected error occurred')
@@ -170,7 +173,24 @@ class GoogleSheets():
         except requests.exceptions.ReadTimeout as e:
             print(e)
             time.sleep(2)
-            create_new_record()
+            update_errortime()
+
+        except Exception as e:
+            print('An unexpected error occurred')
+            print(e)
+            sys.exit(1)
+
+    def upload_count(self):
+        try:
+            self.worksheet = self.gc.open_by_key(self.SPREADSHEET_KEY).sheet1
+            self.row = len(self.worksheet.get_all_values())
+            self.record[5] = self.quantityPerHour
+            self.worksheet.update_cell(self.row,6,self.quantityPerHour)
+
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            time.sleep(2)
+            upload_count()
 
         except Exception as e:
             print('An unexpected error occurred')
