@@ -55,7 +55,7 @@ class LightSensor():
 
 
                     if previousHour < datetime.datetime.now().hour or (previousHour == 23 and datetime.datetime.now().hour == 0):
-                        self.upload_count()
+                        self.gs.upload_count()
                         print('break')
                         break
 
