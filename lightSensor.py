@@ -34,6 +34,7 @@ class LightSensor():
                         inProduction = True
                     elif inProduction == True and val_green < self.config['LIGHT_THRESHOLD']:
                         self.gs.update_createtime()
+                        self.gs.upload_count()
                         inProduction = False
 
                     #赤ランプの監視, エラーが出たら記録
