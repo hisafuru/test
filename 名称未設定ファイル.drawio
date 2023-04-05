@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net" modified="2023-04-05T12:51:33.568Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="oC9mbZuhTJ00-_Y_ak5D" version="21.1.4" type="github">
+  <diagram name="ページ1" id="47w8WjzyWQZLMwELM1jW">
+    <mxGraphModel dx="1013" dy="657" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-1" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="120" width="200" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-2" value="研究室ネットワーク" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="155" y="280" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="140" y="140" width="160" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-4" value="サーバー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="155" y="250" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="150" y="150" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-6" value="Docker環境" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="155" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-8" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="160" y="160" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-9" value="Jupyter" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="155" y="170" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-11" value="" style="shape=mxgraph.signs.tech.computer;html=1;pointerEvents=1;fillColor=#000000;strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="170" width="98" height="98" as="geometry" />
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-12" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=-0.031;exitY=0.412;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="5Q4Ah7r0GUwXbFy-chrS-11" target="5Q4Ah7r0GUwXbFy-chrS-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="210" as="sourcePoint" />
+            <mxPoint x="420" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5Q4Ah7r0GUwXbFy-chrS-13" value="SSH" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="170" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
